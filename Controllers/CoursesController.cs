@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using coursesApi.Models;
+using studentApi.Models;
 
 namespace Assignment1.Controllers
 {
@@ -144,5 +145,44 @@ namespace Assignment1.Controllers
 
             return StatusCode(204);
         }
+
+        // Get api/courses/id/students
+        [HttpGet]
+        [Route("{courseId:int}/students", Name = "GetStudentById")]
+        public IActionResult GetStudentsByCourseId(int courseId) 
+        {
+            var course = _courses.SingleOrDefault(x => x.ID == courseId);
+
+            if(course == null)
+            {
+                return NotFound("invalid ID");
+            }
+
+            var students = _students.Where(x => x.courseIdLink == courseId);
+
+            return Ok(students);
+        }
+
+        // Post apu/courses/id
+        [HttpPost]
+        [Route("{courseId:int}")]
+        public IActionResult AddStudentToCourse(int courseId, [FromBody] Student student)
+        {
+            var course = _courses.SingleOrDefault(x => x.ID == courseId);
+
+            if(course == null)
+            {
+                return NotFound("invalid ID");
+            }
+
+            if(!ModelState.IsValid)
+            {
+                return StatusCode(412);
+            }
+
+            _students.Add(student);
+
+            return CreatedAtRoute("GetStudentById", new {courseId = student.courseIdLink}, student);
+        }   
     }
 }
